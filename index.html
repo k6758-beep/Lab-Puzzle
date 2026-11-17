@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>實驗室解謎</title>
+<meta name="description" content="解開六間實驗室的謎題，找到四把鑰匙，打開正修大門。正修科大五專 116 學年度升學小遊戲。">
+<meta name="theme-color" content="#0D2A2E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.65;font-size:17px;min-height:100%;color-scheme:var(--scheme,light)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;-webkit-tap-highlight-color:transparent}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+#app{max-width:540px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:0 16px 32px}
+#hud{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 0;background:var(--hud,var(--bg))}
+#prog{flex:1;min-width:0}
+#prog .lab{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#prog .bar{height:8px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:3px}
+#prog .bar i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .4s}
+.hbtn{flex:none;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:5px 9px;font-size:12.5px;font-weight:700;line-height:1.25;color:var(--card-ink);text-align:center}
+.hbtn b{display:block;font-size:17px;line-height:1.15}
+.hbtn.pop{animation:pop .5s}
+@keyframes pop{40%{transform:scale(1.18)}}
+#stage{flex:1;display:flex;flex-direction:column;gap:14px;padding-top:6px}
+.card{background:var(--card);color:var(--card-ink);border-radius:var(--r);padding:18px 16px;border:2px solid var(--line)}
+h1{font-size:32px;line-height:1.25;font-weight:900;font-family:var(--display);text-wrap:balance}
+h2{font-size:21px;line-height:1.35;font-weight:900;font-family:var(--display);margin-bottom:6px;text-wrap:balance}
+h3{font-size:17px;font-weight:900;margin:14px 0 4px}
+p+p{margin-top:8px}
+.small{font-size:14.5px}.muted{color:var(--muted2)}
+.kicker{font-size:14px;font-weight:900;color:var(--kick)}
+.cta{display:block;width:100%;background:var(--pri);color:var(--pri-ink);font-weight:900;font-size:18px;padding:14px 16px;border-radius:var(--r);box-shadow:0 4px 0 var(--pri-d);text-align:center;text-decoration:none}
+.cta:active{transform:translateY(3px);box-shadow:0 1px 0 var(--pri-d)}
+.cta[disabled]{opacity:.45;box-shadow:none;cursor:not-allowed}
+.cta.ghost{background:var(--card);color:var(--card-ink);border:2px solid var(--line);box-shadow:none;font-size:16px;padding:11px 14px}
+.cta.line{background:#06C755;color:#fff;box-shadow:0 4px 0 #04883a}
+.opts{display:grid;gap:10px;margin-top:12px}
+.opt{display:flex;gap:10px;align-items:center;text-align:left;width:100%;background:var(--opt);color:var(--card-ink);border:2px solid var(--line);border-radius:var(--r);padding:12px 14px;font-weight:700;font-size:16.5px;line-height:1.45}
+.opt>span:first-child{font-size:26px;flex:none}
+.opt:hover{border-color:var(--acc)}
+.opt.sel{border-color:var(--acc);background:var(--sel)}
+.opt.ok{border-color:#1FA37A;background:#E3F7EE;color:#0d3b2c}
+.opt.no{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.hint{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--sel);font-size:15.5px;font-weight:700;color:var(--card-ink)}
+.tag{display:inline-block;font-size:13px;font-weight:900;padding:1px 9px;border-radius:99px;color:#fff;background:var(--c,#6B7785);white-space:nowrap}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+dl.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin-top:8px;font-size:15.5px}
+dl.kv dt{font-weight:900;white-space:nowrap}
+ul.plain{padding-left:1.2em;font-size:15.5px}
+.warn{background:#FFE600;color:#7A0025;border:3px solid #E6004C;border-radius:14px;padding:11px 13px;font-weight:900;font-size:16px;line-height:1.55}
+.warn u{text-decoration-thickness:2px}
+/* 報到 */
+.avs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.av{aspect-ratio:1;border-radius:50%;border:3px solid var(--line);background:var(--c,#eee);display:grid;place-items:center;font-size:30px;overflow:hidden;padding:0}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.av[aria-pressed=true]{border-color:var(--acc);box-shadow:0 0 0 4px var(--sel)}
+.me{display:inline-grid;place-items:center;border-radius:50%;overflow:hidden;background:var(--c,#eee);flex:none;border:3px solid #fff}
+.me img{width:100%;height:100%;object-fit:cover}
+input.name{width:100%;font:inherit;font-weight:700;padding:11px 12px;border-radius:12px;border:2px solid var(--line);background:#fff;color:#14213D;margin-top:6px}
+label.f{display:block;font-weight:900;font-size:15.5px;margin-top:12px}
+/* 彈出視窗 */
+#overlay{position:fixed;inset:0;z-index:20;background:rgba(10,16,40,.6);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--sheet,var(--card));color:var(--card-ink);width:100%;max-width:540px;max-height:88vh;max-height:88dvh;overflow:auto;border-radius:22px 22px 0 0;padding:8px 16px 26px;animation:up .25s}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet header{display:flex;align-items:center;gap:8px;position:sticky;top:-8px;background:var(--sheet,var(--card));padding:10px 0 8px;z-index:1}
+.sheet header h2{flex:1;margin:0}
+.x{font-size:15px;font-weight:900;border:2px solid var(--line);border-radius:10px;padding:4px 12px;background:var(--opt)}
+#toasts{position:fixed;left:0;right:0;bottom:18px;z-index:30;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.toast{background:#14213D;color:#fff;font-weight:700;font-size:15px;padding:9px 16px;border-radius:99px;animation:up .25s;max-width:92%}
+/* 關鍵時間 */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{font-size:14px;font-weight:900;padding:5px 12px;border-radius:99px;border:2px solid var(--c,var(--line));color:var(--card-ink);background:var(--opt)}
+.chip[aria-pressed=true]{background:var(--c,#14213D);color:#fff}
+.tl{list-style:none;padding:0;margin:10px 0 0 8px;border-left:4px solid var(--line)}
+.tl li{position:relative;padding:0 0 14px 16px}
+.tl li::before{content:"";position:absolute;left:-10px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--c,#6B7785);border:2px solid var(--card)}
+.tl .mon{font-weight:900;font-size:15px;color:var(--muted2);padding-bottom:6px}
+.tl .mon::before{display:none}
+.tl .when{font-weight:900;font-size:16px;font-variant-numeric:tabular-nums}
+.tl .what{font-weight:700}
+.tl .past{opacity:.55}
+.tl .quit .what{display:inline-block;background:#FFE600;color:#7A0025;border:2px solid #E6004C;border-radius:8px;padding:0 8px;font-weight:900}
+.tl a.gc{display:inline-block;margin-top:3px;font-size:14px;font-weight:900;color:var(--link);text-decoration:underline}
+.count{background:var(--sel);border-radius:12px;padding:10px 12px;font-weight:700;font-size:15.5px}
+.disc{font-size:13px;color:var(--muted2);margin-top:10px}
+/* 百寶袋 */
+.bag{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.item{border:2px solid var(--line);border-radius:14px;padding:10px;text-align:left;background:var(--opt);font-weight:900;font-size:15px;color:var(--card-ink);display:flex;gap:8px;align-items:center;line-height:1.3}
+.item span{font-size:24px}
+.item.lock{opacity:.5;border-style:dashed;font-weight:700}
+.dl{border:2px solid var(--line);border-radius:14px;margin-top:8px;background:var(--opt);overflow:hidden}
+.dl summary{font-weight:900;padding:10px 12px;cursor:pointer;border-left:8px solid var(--c)}
+.dl .in{padding:4px 12px 12px;font-size:15.5px}
+.steps4{display:grid;gap:6px;margin-top:8px;padding:0;list-style:none}
+.steps4 li{display:flex;gap:8px;align-items:center;font-weight:700;font-size:15.5px;padding:8px 10px;border-radius:12px;border:2px solid var(--line);background:var(--opt)}
+.steps4 li.on{border-color:var(--acc);background:var(--sel)}
+.steps4 i{font-style:normal;flex:none;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:900}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition:none!important}}
+.dlbox{border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0 10px;background:var(--opt)}
+.dlgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.dlb{background:var(--c);color:#fff;border-radius:10px;padding:8px 4px;font-weight:900;font-size:15px;line-height:1.25}
+.dlb small{display:block;font-weight:700;font-size:12px;opacity:.9}
+.dlb.all{grid-column:1/-1;background:#14213D;padding:11px 4px;font-size:16px}
+.multi .opt{position:relative;padding-right:40px}
+.multi .opt[aria-pressed=true]{border-color:var(--acc);background:var(--sel)}
+.multi .opt[aria-pressed=true]::after{content:"✓";position:absolute;right:10px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:15px;font-weight:900}
+.remind{color:#7A2FE0;font-weight:900}
+/* 版面想法：實驗大樓的藍圖。深青綠底加細格線，門牌和數字用工程字體，重點用琥珀色警示條。 */
+:root{--font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;--display:var(--font);--num:"Chakra Petch","Noto Sans TC",sans-serif;--scheme:dark;
+--bg:#0D2A2E;--ink:#E9FBF6;--card:#F3FBF8;--card-ink:#0F2F33;--line:#BFD9D3;--pri:#FFB627;--pri-ink:#0F2F33;--pri-d:#A66F00;
+--acc:#19C3A6;--kick:#0B7D6B;--sel:#D9F6EF;--opt:#fff;--muted:#8FC0B8;--muted2:#48706A;--link:#0B63C4;--focus:#FFB627;--track:#1B4046;--r:16px}
+body{background-image:linear-gradient(#ffffff0d 1px,transparent 1px),linear-gradient(90deg,#ffffff0d 1px,transparent 1px);background-size:26px 26px}
+#hud{background:#0D2A2Ef2}
+.tape{height:14px;background:repeating-linear-gradient(-45deg,#FFB627 0 14px,#0F2F33 14px 28px);border-radius:4px}
+.cover{background:#123A40;color:var(--ink);border:2px solid #2C6A70}
+.cover h1{font-size:38px;color:#fff}
+.cover .no{font-family:var(--num);font-size:15px;letter-spacing:.2em;color:var(--pri);font-weight:700}
+.doors{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.door{background:linear-gradient(#1a4a50,#12383d);border:3px solid var(--c);border-radius:12px 12px 4px 4px;padding:10px 6px 12px;text-align:center;color:#fff;position:relative;min-height:128px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.door .no{font-family:var(--num);font-weight:700;font-size:14px;background:var(--c);color:#fff;border-radius:6px;padding:0 8px}
+.door .ic{font-size:34px;line-height:1.2}
+.door .nm{font-weight:900;font-size:15px}
+.door .st{font-size:12.5px;font-weight:700;color:var(--muted)}
+.door::after{content:"";position:absolute;right:9px;top:54%;width:9px;height:9px;border-radius:50%;background:var(--pri)}
+.door.done{background:#E9FBF6;color:#0F2F33}
+.door.done .st{color:#0B7D6B}
+.rack{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
+.slot{aspect-ratio:1;border-radius:12px;border:2px dashed #3d7c82;display:grid;place-items:center;font-size:22px;color:#3d7c82;padding:0;background:none}
+.slot.on{border:2px solid var(--c,#FFB627);background:#fff;animation:pop .5s}
+.pz{background:#0F2F33;border-radius:14px;padding:12px;margin-top:10px;color:#E9FBF6}
+.pz svg{display:block;width:100%;height:auto}
+.pick3{display:grid;gap:8px;margin-top:10px}
+.pick3 button{background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 10px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;font-weight:900;color:var(--card-ink);text-align:left}
+.pick3 svg{width:170px}
+.truck{font-size:30px;display:inline-block;animation:drive 1.6s ease-in-out forwards}
+@keyframes drive{from{transform:translateX(-10px) scaleX(-1)}to{transform:translateX(210px) scaleX(-1)}}
+.spin{animation:sp 2.4s linear infinite;transform-box:fill-box;transform-origin:center}
+.spin.r{animation-direction:reverse}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sunrow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px}
+.house{width:130px;height:130px;margin:10px auto;background:#F3FBF8;border:6px solid #8FC0B8;border-radius:8px;position:relative;transition:transform .35s;display:grid;place-items:center;color:#0F2F33;font-weight:900;font-size:15px}
+.house::before{content:"";position:absolute;top:-6px;left:24px;right:24px;height:6px;background:#35A7FF;box-shadow:0 0 12px 3px #35A7FF}
+.house span{transition:transform .35s}
+.sun{font-size:44px;text-align:center;line-height:1.1}.sun small{display:block;font-size:13px;font-weight:700;color:var(--pri)}
+.circ{display:grid;grid-template-columns:40px repeat(3,1fr) 40px;gap:4px;align-items:center}
+.circ .end{font-size:28px;text-align:center}
+.tile{aspect-ratio:1;background:#17454B;border:2px solid #2C6A70;border-radius:10px;padding:0}
+.tile svg{transition:transform .2s}
+.tile path{stroke:#6E9E99;stroke-width:14;fill:none;stroke-linecap:round}
+.tile.live path{stroke:#FFD23F;filter:drop-shadow(0 0 4px #FFD23F)}
+.pads{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:260px;margin:6px auto}
+.pad{aspect-ratio:1.5;border-radius:14px;background:var(--c);opacity:.35;border:3px solid #fff3;padding:0;transition:opacity .08s,transform .08s}
+.pad.lit{opacity:1;transform:scale(1.05);box-shadow:0 0 18px var(--c)}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.dots i{width:12px;height:12px;border-radius:50%;background:#2C6A70}.dots i.on{background:var(--pri)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:240px;margin:0 auto}
+.cell{aspect-ratio:1;background:#17454B;border-radius:8px;display:grid;place-items:center;font-size:28px}
+.cell.wall{background:repeating-linear-gradient(45deg,#335a5f 0 6px,#274b50 6px 12px)}
+.bot{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#FFB627;color:#0F2F33;font-size:22px;font-weight:900;transition:transform .2s}
+.prog{display:flex;gap:5px;flex-wrap:wrap;min-height:38px;align-items:center;background:#17454B;border-radius:10px;padding:6px;margin-top:10px}
+.prog span{background:#fff;color:#0F2F33;border-radius:8px;padding:2px 8px;font-weight:900;font-size:14px}
+.prog em{font-style:normal;color:var(--muted);font-size:14px;padding-left:4px}
+.cmds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.cmds button,.two button{background:var(--card);color:var(--card-ink);border:2px solid var(--line);border-radius:12px;padding:10px 4px;font-weight:900;font-size:15.5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.two .go{background:var(--pri);border-color:var(--pri)}
+.keycard{border-left:10px solid var(--c);background:#fff;border-radius:12px;padding:12px;margin-top:10px;font-size:15.5px;color:var(--card-ink)}
+.pass{background:#fff;border:0;padding:0;overflow:hidden}
+.pass .hd{background:#0F2F33;color:#fff;padding:14px 16px;display:flex;gap:12px;align-items:center}
+.pass .hd .nm{font-size:24px;font-weight:900;line-height:1.2}
+.pass .bd{padding:14px 16px}
+.pass .time{font-family:var(--num);font-size:30px;font-weight:700;color:#0B7D6B}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.grid2 .opt{flex-direction:column;align-items:flex-start;gap:0;padding:10px 12px}
+.grid2 .opt small{font-weight:700;color:var(--muted2);font-size:13px}
+.pick3.col3{grid-template-columns:repeat(3,1fr)}
+.pick3.col3 button{grid-template-columns:1fr;text-align:center;font-size:14.5px;padding:6px}
+.pick3.col3 svg{width:100%}
+.pick3 button.picked{background:#D9F6EF;border-color:#19C3A6}
+.pick3 button:disabled{opacity:1}
+.pick3 .ord{font-family:var(--num);font-size:22px;color:#0B7D6B;min-width:22px;text-align:center}
+.segrow{display:grid;gap:4px;margin-top:10px;font-weight:900;font-size:15px}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg2 button,.cmds button[aria-pressed]{background:#17454B;color:#E9FBF6;border:2px solid #2C6A70;border-radius:10px;padding:8px 4px;font-weight:700;font-size:15px}
+.seg2 button[aria-pressed=true],.cmds button[aria-pressed=true]{background:#FFB627;color:#0F2F33;border-color:#FFB627;font-weight:900}
+.folk{display:grid;gap:4px;font-size:15px;background:#17454B;border-radius:10px;padding:8px 10px;margin-top:6px}
+.force{display:flex;gap:5px;align-items:center;margin-top:10px;font-weight:700;font-size:14.5px}
+.force i{width:26px;height:14px;border-radius:4px;background:#2C6A70}.force i.on{background:#FF5C8A}
+.cir2{display:grid;gap:8px;margin-top:6px}.cir2 b{font-size:14.5px;color:#FFB627}
+.rule{background:#17454B;border-radius:12px;padding:12px;font-weight:900;font-size:17px;line-height:2.3;margin-top:8px}
+.rule button{background:#FFB627;color:#0F2F33;border-radius:8px;padding:2px 10px;font-weight:900}
+.tests{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.tests div{background:#17454B;border-radius:10px;padding:6px 2px;text-align:center;border:2px solid #19C3A6;display:grid;gap:1px;font-size:20px}
+.tests div.ng{border-color:#FF5C8A}
+.tests small{font-size:11.5px;color:#8FC0B8;font-weight:700}.tests b{font-size:13px}.tests em{font-style:normal;font-weight:900;color:#19C3A6}.tests .ng em{color:#FF5C8A}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hud" hidden>
+    <button class="hbtn" id="btnBack" aria-label="上一步"><b>←</b>上一步</button>
+    <div id="prog"></div>
+    <button class="hbtn" id="btnTl" aria-label="關鍵時間"><b>🗓️</b>關鍵時間</button>
+    <button class="hbtn" id="btnBag" aria-label="百寶袋"><b>🎒</b>百寶袋</button>
+  </header>
+  <main id="stage" aria-live="polite"></main>
+</div>
+<div id="overlay" hidden></div>
+<div id="toasts" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<noscript><p style="padding:20px">這個遊戲需要開啟 JavaScript 才能玩。</p></noscript>
+<script>
+"use strict";
+/* =====================================================================
+ *  資料層：每年只需要改這一段（學年度、日期、電話、LINE、獎學金、各科介紹）
+ *  日期格式一律 "YYYY-MM-DD"（西元）。116 學年度 = 2027 年入學。
+ *  來源：116學年度五專招生重要日程表
+ * ===================================================================== */
+const D = {
+  cycle: "116學年度",
+  school: { name: "正修科技大學", unit: "招生處", tel: "07-7310203", line: "https://line.me/R/ti/p/@csu1111", lineId: "@csu1111" },
+  bonus: "經五專完全免試入學錄取正修並完成註冊，可獲得入學獎學金 5,000 元。",
+  paths: {
+    wan: { n: 1, name: "五專完全免試入學", short: "完全免試", color: "#E8641B",
+      when: "會考前（4 月底報名、5 月中公布）",
+      rules: ["不採計會考成績，會考前就知道結果", "只能選 1 所學校的 1 個科", "向自己就讀的國中報名", "國中應屆畢業生才能參加"] },
+    you: { n: 2, name: "五專優先免試入學", short: "優先免試", color: "#2A76C9",
+      when: "會考後（5 月中報名、6 月中公布）",
+      rules: ["全國一區，不限地區、學校和科別", "上網最多可以填 30 個志願", "電腦依照你排的順序統一分發"] },
+    lian: { n: 3, name: "南區五專聯合免試入學", short: "聯合免試", color: "#17936C",
+      when: "優先免試之後（6 月下旬報名、7 月初現場選科）",
+      rules: ["分北、中、南三區，每區選 1 所學校報名（正修在南區）", "親自到學校，依順序現場選科並報到", "前兩個管道沒用完的名額會加進來"] },
+    xu: { n: 4, name: "五專免試入學續招", short: "免試續招", color: "#7B52C7",
+      when: "聯合免試之後（日期由各校公告）",
+      rules: ["聯合免試之後還有名額的學校才會辦理", "報名方式和日期請看各校公告"] }
+  },
+  events: [
+    { p: "all", s: "2027-01-15", t: "招生簡章公告", d: "完全免試、優先免試、聯合免試的簡章都在這天公告，可以上網下載。" },
+    { p: "all", s: "2027-03-04", e: "2027-03-06", t: "國中教育會考報名", d: "由就讀的國中協助報名。" },
+    { p: "wan", s: "2027-04-27", e: "2027-05-03", t: "完全免試報名", d: "向就讀的國中報名，只能選 1 所學校的 1 個科。" },
+    { p: "wan", s: "2027-05-13", t: "完全免試錄取公告", d: "會考前就知道結果。" },
+    { p: "all", s: "2027-05-15", e: "2027-05-16", t: "國中教育會考", d: "考試日。" },
+    { p: "wan", s: "2027-05-17", e: "2027-06-11", t: "完全免試報到", d: "實際報到日期由各校自訂，請看錄取學校的通知。" },
+    { p: "you", s: "2027-05-17", e: "2027-05-21", t: "優先免試報名", d: "國中集體報名 5/17–5/21；個別網路報名 5/18–5/21。" },
+    { p: "you", s: "2027-06-03", e: "2027-06-07", t: "優先免試上網選填志願", d: "最多可以填 30 個志願，請依照想讀的順序排列。" },
+    { p: "all", s: "2027-06-04", t: "會考成績公布", d: "寄發成績單並開放網路查詢。" },
+    { p: "you", s: "2027-06-11", t: "優先免試放榜", d: "上午 9:00 起可以上網查詢分發結果。" },
+    { p: "wan", s: "2027-06-15", t: "完全免試放棄截止", d: "報到後想放棄錄取資格，要在這天之前辦理。", quit: 1 },
+    { p: "you", s: "2027-06-15", t: "優先免試報到及放棄截止", d: "中午 12:00 前完成錄取報到；想放棄錄取也是這個時間截止。", quit: 1 },
+    { p: "lian", s: "2027-06-18", e: "2027-06-24", t: "聯合免試報名", d: "6/18 公告實際招生名額。每區選 1 所學校報名，正修在南區。" },
+    { p: "lian", s: "2027-07-02", t: "聯合免試寄發通知單", d: "寄發成績和現場登記分發報到通知單。" },
+    { p: "lian", s: "2027-07-07", t: "聯合免試現場選科報到", d: "親自到報名的學校，依順序現場選科並完成報到。記得帶畢業證書正本。" },
+    { p: "lian", s: "2027-07-12", t: "聯合免試放棄截止", d: "中午 12:00 前，錄取後想放棄要在這之前辦理。", quit: 1 }
+  ]
+};
+const PORD = ["wan", "you", "lian", "xu"];
+/* 六個科：one 一句話、like 適合誰、learn 學什麼、feat 正修特色、jobs 未來職業、url 科網頁 */
+const DEPT = {
+  civ: { name: "土木科", icon: "🌉", color: "#D9692B",
+    one: "橋梁、道路、捷運、隧道，都是這一科的人蓋出來的。",
+    like: ["看到大橋或捷運工地，會想知道它是怎麼蓋的", "想守護大家的安全", "喜歡到戶外動手量一量、算一算"],
+    learn: "學測量、畫工程圖和各種蓋法，還會操作無人機，用 3D 雷射掃描把地形變成立體模型。",
+    feat: ["學校裡就有測量、製圖的證照考場", "有無人機操作和 3D 建模的證照培訓", "學習用再生材料，蓋出更環保的城市"],
+    jobs: ["土木工程師", "工地主任", "測量工程師"], url: "https://civil.csu.edu.tw/" },
+  arc: { name: "建築科", icon: "🏛️", color: "#D6457A",
+    one: "住的家、學校、百貨公司、地標大樓，都從這一科的設計圖開始。",
+    like: ["喜歡畫圖、做模型，或在遊戲裡蓋房子", "做出作品會很有成就感，願意花時間把它做好", "喜歡自己想點子、解決問題"],
+    learn: "學建築設計、畫圖和做模型，也用電腦蓋出 3D 立體建築，還會用到 VR、3D 列印、雷射切割和空拍機。",
+    feat: ["五專建築科畢業，就有資格報考建築師", "用數位工具把設計做成真的作品", "把 AI 也放進設計課裡"],
+    jobs: ["建築師", "室內設計師", "景觀設計師"], url: "https://archi.csu.edu.tw/" },
+  mec: { name: "機械科", icon: "🦾", color: "#4C5FE0",
+    one: "電梯、捷運車廂、工廠裡的機械手臂，都靠這一科設計和製造。",
+    like: ["喜歡把東西拆開，看看裡面怎麼運作", "喜歡動手做，自己設計新東西", "喜歡和隊友一起完成作品"],
+    learn: "學機械設計、製造和自動控制。先用電腦畫出零件，再用機器把它做出來。",
+    feat: ["有五軸切削技術人才培育基地", "有很多間實驗室，可以玩機器人和自動化設備", "和企業合作，在學期間有機會實習"],
+    jobs: ["機械工程師", "自動化工程師", "CNC 加工技師"], url: "https://me.csu.edu.tw/" },
+  ele: { name: "電機科", icon: "⚡", color: "#C98A00",
+    one: "電從哪裡來、怎麼送到每個家、電動車怎麼跑，都由這一科負責。",
+    like: ["對電動車、太陽能這類東西很好奇", "不排斥數學課和自然課", "喜歡挑戰新東西"],
+    learn: "學電力與能源、自動控制和 AI 應用，也學電動車和電動機車的技術。",
+    feat: ["輔導考取太陽能、工業配線、機電整合等證照", "有電動車機電整合的訓練", "有校外實習和產學合作"],
+    jobs: ["電機工程師", "自動控制工程師", "電動車工程師"], url: "https://electrical.csu.edu.tw/" },
+  etn: { name: "電子科", icon: "📡", color: "#0F9B8A",
+    one: "手機裡的晶片、會自動亮的路燈、偵測空氣的感測器，都是這一科的作品。",
+    like: ["對手機、遊戲機裡的晶片和零件很好奇", "喜歡動手做實驗、接電路", "願意花時間研究，直到弄懂為止"],
+    learn: "學晶片的製作與測試、物聯網（讓東西連上網路）、AI 和綠能科技。",
+    feat: ["半導體加上 AI，兩種技能一起學", "帶學生參加國際發明展和校外競賽", "和半導體公司合作，安排校外實習"],
+    jobs: ["電子工程師", "半導體製程工程師", "設備工程師"], url: "https://ee.csu.edu.tw/" },
+  cs: { name: "資工科", icon: "🤖", color: "#7A4FE0",
+    one: "App、遊戲、AI 助理、網路安全，都靠這一科寫程式來完成。",
+    like: ["喜歡寫程式、玩邏輯解謎", "喜歡自己動手解決問題", "對 AI 和新科技很好奇"],
+    learn: "學程式設計、AI 應用、XR（把虛擬和真實混在一起的技術）和資訊安全。",
+    feat: ["三大重點：AI 應用、XR 技術、資訊安全", "軟體和硬體一起學", "有實習和就業的合作夥伴"],
+    jobs: ["軟體設計師", "AI 工程師", "資安工程師"], url: "https://csie.csu.edu.tw/" }
+};
+const DORD = ["civ", "arc", "mec", "ele", "etn", "cs"];
+const ADV = {
+  free: "五專前三年<b>免學費</b>，公立、私立學校都一樣，只需要繳雜費等其他費用。",
+  later: "專四、專五就讀私立學校，每學期學雜費<b>減免 17,500 元</b>。",
+  wing: "還可以申請<b>五專展翅計畫</b>：合作企業每個月提供至少 6,000 元生活獎學金，教育部補助專四、專五的學雜費，畢業後到這家企業工作 2 年。",
+  lab: "五專是大專教育的一部分。在正修，你會走進<b>科技大學的實驗室</b>，用大學的設備，由大學老師帶著你動手做。",
+  cert: "幾乎每一科都有對應的<b>專業證照</b>，學校會陪你準備和考取，把實力變成看得見的證明。",
+  intern: "專四、專五有<b>畢業專題</b>，高年級還會安排到<b>企業實習</b>，提早認識真正的職場。",
+  degree: "讀滿五年畢業，就能拿到<b>副學士學位</b>，那時候你大約 20 歲。"
+};
+const AFTER = [
+  { icon: "🎓", name: "繼續升學", d: "報考二技，再讀 2 年，大約 22 歲拿到學士學位。" },
+  { icon: "💼", name: "工作＋進修一起來", d: "白天上班領薪水，晚上或假日讀二技進修部。" },
+  { icon: "🚀", name: "先進入職場", d: "帶著五年的實作經驗和證照直接就業。" }
+];
+const AVS = [["🦊", "#FFD9B8"], ["🐼", "#DCEBDD"], ["🐯", "#FFE7A3"], ["🐧", "#CFE4FF"], ["🐨", "#E3DDF5"], ["🐸", "#CDEFC4"], ["🐰", "#FFD6E4"]];
+
+/* ---------------- 小工具 ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const WK = "日一二三四五六";
+const dt = s => new Date(s + "T00:00:00");
+const md = s => { const d = dt(s); return `${d.getMonth() + 1}/${d.getDate()}（${WK[d.getDay()]}）`; };
+const when = e => e.e && e.e !== e.s ? `${md(e.s)}–${md(e.e)}` : md(e.s);
+const TODAY = (() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); })();
+const pname = p => p === "all" ? "共同" : D.paths[p].short;
+const pcolor = p => p === "all" ? "#5E6B7A" : D.paths[p].color;
+const tag = p => `<span class="tag" style="--c:${pcolor(p)}">${pname(p)}</span>`;
+const nick = p => APP.skin[p].nick;
+const who = () => esc(S.name || "同學");
+
+/* ---------------- 進度儲存（只存在這台裝置） ---------------- */
+const base = () => ({ step: 0, name: "", av: 0, photo: "", sc: {}, dept: "", bag: [], x: {} });
+let S = base();
+function save() { try { localStorage.setItem(APP.key, JSON.stringify(S)); } catch (e) {} }
+function load() { try { const v = JSON.parse(localStorage.getItem(APP.key)); if (v && typeof v.step === "number") return v; } catch (e) {} return null; }
+function reset() { try { localStorage.removeItem(APP.key); } catch (e) {} S = base(); }
+
+/* ---------------- 音效與彩帶 ---------------- */
+let AC = null;
+function beep(seq) {
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    let t = AC.currentTime;
+    seq.forEach(([f, d]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f;
+      g.gain.setValueAtTime(.07, t); g.gain.exponentialRampToValueAtTime(.001, t + d); o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d); t += d * .8; });
+  } catch (e) {}
+}
+const good = () => beep([[660, .1], [880, .16]]);
+const bad = () => beep([[220, .14]]);
+const win = () => beep([[523, .12], [659, .12], [784, .12], [1047, .28]]);
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  const c = $("#fx"), g = c.getContext("2d"); c.width = innerWidth; c.height = innerHeight;
+  const cols = ["#FF5C8A", "#FFC93C", "#3DDBB4", "#5B8DEF", "#fff"];
+  const P = Array.from({ length: 90 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * .5, v: 2 + Math.random() * 4, w: 6 + Math.random() * 6, r: Math.random() * 6, c: cols[Math.random() * 5 | 0], s: Math.random() * 2 - 1 }));
+  let n = 0;
+  (function tick() {
+    g.clearRect(0, 0, c.width, c.height);
+    P.forEach(p => { p.y += p.v; p.x += p.s; p.r += .1; g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.fillStyle = p.c; g.fillRect(-p.w / 2, -p.w / 4, p.w, p.w / 2); g.restore(); });
+    if (++n < 170) requestAnimationFrame(tick); else g.clearRect(0, 0, c.width, c.height);
+  })();
+}
+
+/* ---------------- 彈出視窗、提示 ---------------- */
+function closeSheet() { const o = $("#overlay"); o.hidden = true; o.innerHTML = ""; }
+function sheet(title, html) {
+  const o = $("#overlay");
+  o.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><h2>${title}</h2><button class="x" data-x>關閉</button></header>${html}</div>`;
+  o.hidden = false;
+  o.onclick = e => { if (e.target === o || e.target.closest("[data-x]")) closeSheet(); };
+  $(".x", o).focus();
+  return $(".sheet", o);
+}
+function toast(msg) {
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg;
+  const box = $("#toasts"); while (box.children.length > 1) box.firstChild.remove();
+  box.append(t); setTimeout(() => t.remove(), 2200);
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#overlay").hidden) closeSheet(); });
+
+/* ---------------- 暱稱與大頭照 ---------------- */
+function meHTML(size = 56, extra = "") {
+  const a = AVS[S.av] || AVS[0];
+  return `<span class="me" style="width:${size}px;height:${size}px;font-size:${size * .56}px;--c:${a[1]}">${S.photo ? `<img src="${S.photo}" alt="">` : a[0]}</span>${extra}`;
+}
+function pickPhoto(capture) {
+  return new Promise(res => {
+    const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; if (capture) inp.setAttribute("capture", "user");
+    inp.onchange = () => {
+      const f = inp.files && inp.files[0]; if (!f) return res(null);
+      const url = URL.createObjectURL(f), im = new Image();
+      im.onload = () => {
+        const c = document.createElement("canvas"), n = 240, s = Math.min(im.naturalWidth, im.naturalHeight); c.width = c.height = n;
+        c.getContext("2d").drawImage(im, (im.naturalWidth - s) / 2, (im.naturalHeight - s) / 2, s, s, 0, 0, n, n);
+        URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", .85));
+      };
+      im.onerror = () => { toast("這張照片打不開，換一張試試"); res(null); }; im.src = url;
+    };
+    inp.click();
+  });
+}
+/* o：kicker、title、lead、btn */
+function profileScene(o) {
+  const draw = () => {
+    stage(`<div class="card"><p class="kicker">${o.kicker}</p><h2>${o.title}</h2><p>${o.lead}</p>
+      <label class="f" for="nm">你的暱稱</label><input class="name" id="nm" maxlength="8" placeholder="例如：小安" value="${esc(S.name)}" autocomplete="off">
+      <p class="f">選一張代表你的大頭照</p>
+      <div class="avs">${AVS.map((a, i) => `<button class="av" style="--c:${a[1]}" data-i="${i}" aria-pressed="${!S.photo && S.av === i}" aria-label="動物頭像 ${i + 1}">${a[0]}</button>`).join("")}
+        <button class="av" id="ph" style="--c:#fff" aria-pressed="${!!S.photo}" aria-label="用自己的照片">${S.photo ? `<img src="${S.photo}" alt="">` : "📷"}</button></div>
+      <p class="small muted" style="margin-top:8px">點 📷 可以自拍或選一張照片。照片只留在這台裝置裡，不會上傳。</p></div>
+      <button class="cta" id="ok">${o.btn}</button>`);
+    const keep = () => { S.name = $("#nm").value.trim(); };
+    $$(".av[data-i]").forEach(b => b.onclick = () => { keep(); S.av = +b.dataset.i; S.photo = ""; draw(); });
+    $("#ph").onclick = async () => { keep(); const p = await pickPhoto(true); if (p) { S.photo = p; draw(); } };
+    $("#ok").onclick = () => { keep(); if (!S.name) { toast("先取一個暱稱吧"); $("#nm").focus(); return; } good(); next(); };
+  };
+  draw();
+}
+
+/* ---------------- 關鍵時間 ＋ Google 日曆 ---------------- */
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+const endEx = e => { const d = dt(e.e || e.s); d.setDate(d.getDate() + 1); return d; };
+const gcal = e => "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(`【五專】${e.t}`) +
+  `&dates=${ymd(dt(e.s))}/${ymd(endEx(e))}&details=` + encodeURIComponent(`${e.d}\n（${D.cycle}，日期以正式招生簡章為準）\n${D.school.name}${D.school.unit} ${D.school.tel}`) + "&ctz=Asia/Taipei";
+function saveFile(blob, name) {
+  try {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); return true;
+  } catch (e) { return false; }
+}
+function fold(line) {
+  const enc = new TextEncoder(); let out = "", cur = "", len = 0;
+  for (const ch of line) { const b = enc.encode(ch).length; if (len + b > 73) { out += cur + "\r\n "; cur = ""; len = 1; } cur += ch; len += b; }
+  return out + cur;
+}
+const escI = s => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+/* f：wan / you / lian 下載單一管道（含共同日期）；every 下載四個管道全部 */
+function downloadIcs(f) {
+  const evs = eventsOf(f), label = f === "every" ? "四個管道" : D.paths[f].short;
+  const L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CSU//5-year-college//ZH-TW", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-WR-CALNAME:${escI("五專關鍵時間 " + label + " " + D.cycle)}`, "X-WR-TIMEZONE:Asia/Taipei"];
+  evs.forEach((e, i) => L.push("BEGIN:VEVENT", `UID:${APP.key}-${f}-${e.s}-${i}@csu`, `DTSTAMP:${ymd(new Date())}T000000Z`,
+    `DTSTART;VALUE=DATE:${ymd(dt(e.s))}`, `DTEND;VALUE=DATE:${ymd(endEx(e))}`, `SUMMARY:${escI((e.quit ? "⚠️" : "") + "【五專】" + e.t)}`,
+    `DESCRIPTION:${escI(`${e.d}\n（${D.cycle}，日期以正式招生簡章為準）\n${D.school.name}${D.school.unit} ${D.school.tel}`)}`,
+    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${escI("【五專】" + e.t)}`, "TRIGGER:-P3D", "END:VALARM", "END:VEVENT"));
+  L.push("END:VCALENDAR");
+  saveFile(new Blob([L.map(fold).join("\r\n")], { type: "text/calendar;charset=utf-8" }), `五專關鍵時間-${label}.ics`);
+  toast(`📥 ${label}共 ${evs.length} 筆。點開下載的檔案，就能加入行事曆`);
+}
+function eventsOf(f) { return D.events.filter(e => f === "every" || e.p === f || e.p === "all"); }
+function countdownHTML(f) {
+  const e = eventsOf(f).find(v => endEx(v) > TODAY);
+  if (!e) return `<div class="count">這個學年度的日程都結束了，下一年度的日期請留意學校公告。</div>`;
+  const days = Math.round((dt(e.s) - TODAY) / 864e5);
+  return `<div class="count">⏳ ${days > 0 ? `下一件事：<b>${e.t}</b>，${when(e)}，還有 <b>${days}</b> 天` : `現在進行中：<b>${e.t}</b>，${when(e)}`}</div>`;
+}
+function timelineHTML(f) {
+  let mon = "", h = "";
+  eventsOf(f).forEach(e => {
+    const d = dt(e.s), m = `${d.getFullYear() - 1911} 年 ${d.getMonth() + 1} 月`;
+    if (m !== mon) { mon = m; h += `<li class="mon">${m}</li>`; }
+    h += `<li style="--c:${pcolor(e.p)}" class="${endEx(e) <= TODAY ? "past" : ""} ${e.quit ? "quit" : ""}"><div class="when">${when(e)} ${tag(e.p)}</div><div class="what">${e.quit ? "⚠️ " : ""}${e.t}</div><div class="small">${e.d}</div><a class="gc" href="${gcal(e)}" target="_blank" rel="noopener">＋ 加到 Google 日曆</a></li>`;
+  });
+  if (f === "every" || f === "xu") h += `<li class="mon">聯合免試之後</li><li style="--c:${pcolor("xu")}"><div class="when">日期由各校公告 ${tag("xu")}</div><div class="what">免試續招</div><div class="small">還有名額的學校才會辦理，請留意學校網站。</div></li>`;
+  return `<ol class="tl">${h}</ol>`;
+}
+function openTimes(f) {
+  f = f || "every";
+  const s = sheet("🗓️ 關鍵時間", `<p class="small muted">${D.cycle}（民國 116 年＝西元 2027 年）。選一個管道，只看它的日期。黃色標示的是<b>放棄截止日</b>。</p>
+    <div class="chips" id="tlChips"></div>
+    <div class="dlbox"><b>📥 下載關鍵時間到手機行事曆</b><p class="small muted">會提前 3 天提醒。下載後點開檔案，就能加入行事曆。</p>
+      <div class="dlgrid">${["wan", "you", "lian"].map(p => `<button class="dlb" data-dl="${p}" style="--c:${pcolor(p)}">${D.paths[p].short}<small>${eventsOf(p).length} 筆</small></button>`).join("")}
+      <button class="dlb all" data-dl="every">四個管道一次下載<small>${eventsOf("every").length} 筆</small></button></div>
+      <p class="small muted">免試續招的日期由各校公告，所以沒有可以下載的日期。${/Line\/|FBAN|FBAV|Instagram/i.test(navigator.userAgent) ? "<br><b>⚠️ 你正在 App 的內建瀏覽器裡，可能沒辦法下載。請用右上角選單「以預設瀏覽器開啟」，或直接點每一筆下面的「加到 Google 日曆」。</b>" : ""}</p></div>
+    <div id="tlBody"></div>`);
+  $$("[data-dl]", s).forEach(b => b.onclick = () => downloadIcs(b.dataset.dl));
+  const draw = () => {
+    $("#tlChips", s).innerHTML = [["every", "全部"], ...PORD.map(p => [p, D.paths[p].short])].map(([k, n]) =>
+      `<button class="chip" data-f="${k}" aria-pressed="${k === f}" style="--c:${k === "every" ? "#14213D" : pcolor(k)}">${n}</button>`).join("");
+    $("#tlBody", s).innerHTML = `${countdownHTML(f)}${timelineHTML(f)}
+      <p class="disc">日期依「116學年度五專招生重要日程表」。招生日期和規定可能調整，請以正式招生簡章為準。${D.school.name}${D.school.unit} ${D.school.tel}</p>`;
+    $$("[data-f]", s).forEach(b => b.onclick = () => { f = b.dataset.f; draw(); });
+  };
+  draw();
+}
+
+/* ---------------- 共用畫面片段 ---------------- */
+function deptHTML(k) {
+  const d = DEPT[k];
+  return `<p>${d.one}</p><dl class="kv"><dt>💡 適合誰</dt><dd>${d.like.join("；")}</dd><dt>📖 學什麼</dt><dd>${d.learn}</dd>
+    <dt>⭐ 正修特色</dt><dd>${d.feat.join("；")}</dd><dt>🚀 未來職業</dt><dd>${d.jobs.join("、")}</dd></dl>
+    <p class="small" style="margin-top:8px"><a href="${d.url}" target="_blank" rel="noopener" style="font-weight:900;color:var(--link)">打開${d.name}的網頁 ↗</a></p>`;
+}
+function pathHTML(p) {
+  const P = D.paths[p], k = APP.skin[p];
+  return `<p><b>${k.icon} ${k.nick}</b>＝${tag(p)} <b>${P.name}</b></p><p class="small">${k.analog}</p>
+    <ul class="plain" style="margin-top:6px">${P.rules.map(r => `<li>${r}</li>`).join("")}</ul>
+    <p class="small" style="margin-top:6px"><b>🗓️ 時間：</b>${P.when}</p>${p === "wan" ? `<p class="small" style="margin-top:6px"><b>🎁 正修加碼：</b>${D.bonus}</p>` : ""}`;
+}
+function steps4HTML(me) {
+  return `<ol class="steps4">${PORD.map(p => `<li class="${p === me ? "on" : ""}" style="--c:${pcolor(p)}"><i>${D.paths[p].n}</i><span>${APP.skin[p].icon} <b>${APP.skin[p].nick}</b>｜${D.paths[p].short}<span class="small muted">　${D.paths[p].when}</span></span></li>`).join("")}</ol>`;
+}
+function keyDatesHTML(p) {
+  return `<dl class="kv">${D.events.filter(e => e.p === p).map(e => `<dt>${when(e)}</dt><dd>${e.quit ? `<b style="background:#FFE600;color:#7A0025;padding:0 6px;border-radius:6px">⚠️ ${e.t.replace(D.paths[p].short, "")}</b>` : e.t.replace(D.paths[p].short, "")}</dd>`).join("")}</dl>`;
+}
+const warnHTML = () => `<div class="warn" role="note">⚠️ ${APP.warn}各管道放棄時間請看「<u>關鍵時間</u>」。</div>`;
+const lineHTML = (txt) => `<a class="cta line" href="${D.school.line}" target="_blank" rel="noopener">💬 ${txt || "加官方 LINE@，專人一對一回答"}</a>
+  <p class="small" style="text-align:center;margin-top:-6px">LINE ID：<b>${D.school.lineId}</b>（正修科大官方帳號，不是群組）　招生處 ${D.school.tel}</p>`;
+function sixHTML(open) {
+  return DORD.map(k => `<details class="dl" style="--c:${DEPT[k].color}" ${k === open ? "open" : ""}><summary>${DEPT[k].icon} ${DEPT[k].name}</summary><div class="in">${deptHTML(k)}</div></details>`).join("");
+}
+const topDept = () => DORD.slice().sort((a, b) => (S.sc[b] || 0) - (S.sc[a] || 0))[0];
+
+/* ---------------- 把識別證／明信片畫成圖片，可下載 ---------------- */
+function wrapText(g, text, x, y, maxW, lh) {
+  let line = "";
+  for (const ch of String(text)) { if (ch === "\n" || g.measureText(line + ch).width > maxW) { g.fillText(line, x, y); y += lh; line = ch === "\n" ? "" : ch; } else line += ch; }
+  if (line) { g.fillText(line, x, y); y += lh; }
+  return y;
+}
+const plain = h => String(h).replace(/<[^>]+>/g, "");
+/* o：kicker 小標、icon 大圖示、msg 幾行留言（可省略）、rows [[標題, 內容]]、file 檔名；顏色用 APP.card */
+async function cardImage(o) {
+  const W = 1080, P = 64, T = APP.card, c = document.createElement("canvas"), g = c.getContext("2d"); c.width = W; c.height = 2400;
+  const ff = getComputedStyle(document.body).fontFamily, f = (px, w = 700) => { g.font = `${w} ${px}px ${ff}`; };
+  g.textBaseline = "alphabetic"; g.fillStyle = T.bg; g.fillRect(0, 0, W, c.height);
+  g.fillStyle = T.head; g.fillRect(0, 0, W, 260);
+  const a = AVS[S.av] || AVS[0], cx = P + 80, cy = 130;
+  g.save(); g.beginPath(); g.arc(cx, cy, 80, 0, 7); g.closePath(); g.fillStyle = a[1]; g.fill(); g.clip();
+  if (S.photo) { try { const im = new Image(); await new Promise((r, j) => { im.onload = r; im.onerror = j; im.src = S.photo; }); g.drawImage(im, cx - 80, cy - 80, 160, 160); } catch (e) {} }
+  else { f(96); g.textAlign = "center"; g.fillText(a[0], cx, cy + 34); g.textAlign = "left"; }
+  g.restore(); g.lineWidth = 6; g.strokeStyle = "#fff"; g.beginPath(); g.arc(cx, cy, 80, 0, 7); g.stroke();
+  g.fillStyle = T.headSub; f(32); g.fillText(o.kicker, P + 190, 100);
+  g.fillStyle = "#fff"; f(68, 900); g.fillText(S.name || "同學", P + 190, 185);
+  f(100); g.textAlign = "right"; g.fillText(o.icon, W - P, 170); g.textAlign = "left";
+  let y = 340;
+  if (o.msg) { g.fillStyle = T.ink; f(42); o.msg.forEach(m => { y = wrapText(g, m, P, y, W - P * 2, 64); }); y += 24; }
+  o.rows.forEach(([k, v]) => { g.fillStyle = T.sub; f(32, 900); g.fillText(k, P, y); g.fillStyle = T.ink; f(36); y = wrapText(g, plain(v), P + 220, y, W - P * 2 - 220, 54) + 14; });
+  y += 20; g.fillStyle = T.head; g.fillRect(P, y - 44, 10, 56); f(42, 900); g.fillText("早鳥直達的關鍵時間", P + 28, y); y += 26;
+  g.fillStyle = T.sub; f(30); g.fillText(`${D.paths.wan.name}，會考前就知道結果`, P + 28, y + 30); y += 96;
+  D.events.filter(e => e.p === "wan").forEach(e => {
+    if (e.quit) { g.fillStyle = "#FFE600"; g.fillRect(P - 12, y - 44, W - P * 2 + 24, 62); g.strokeStyle = "#E6004C"; g.lineWidth = 4; g.strokeRect(P - 12, y - 44, W - P * 2 + 24, 62); }
+    g.fillStyle = e.quit ? "#7A0025" : T.ink; f(36, 900); g.fillText(when(e), P, y); f(36, e.quit ? 900 : 500); g.fillText((e.quit ? "⚠️ " : "") + e.t.replace("完全免試", ""), P + 440, y); y += 70;
+  });
+  y += 20; f(34, 900); const wt = "⚠️ " + APP.warn + "各管道放棄時間請看「關鍵時間」。";
+  const lines = Math.ceil(g.measureText(wt).width / (W - P * 2 - 48)) + 0; const bh = lines * 52 + 44;
+  g.fillStyle = "#FFE600"; g.fillRect(P, y, W - P * 2, bh); g.strokeStyle = "#E6004C"; g.lineWidth = 6; g.strokeRect(P, y, W - P * 2, bh);
+  g.fillStyle = "#7A0025"; wrapText(g, wt, P + 24, y + 58, W - P * 2 - 48, 52); y += bh + 70;
+  g.fillStyle = T.ink; f(34, 900); g.fillText(`官方 LINE@：${D.school.lineId}（專人一對一）`, P, y); y += 54;
+  f(30, 500); g.fillStyle = T.sub; g.fillText(`${D.school.name}${D.school.unit} ${D.school.tel}｜日期以 ${D.cycle} 正式招生簡章為準`, P, y); y += 60;
+  const out = document.createElement("canvas"); out.width = W; out.height = y; out.getContext("2d").drawImage(c, 0, 0);
+  return out;
+}
+async function saveCard(o) {
+  let cv; try { cv = await cardImage(o); } catch (e) { toast("圖片做不出來，請改用截圖"); return; }
+  const url = cv.toDataURL("image/png");
+  const s = sheet(`🖼️ ${o.title}`, `<p class="small muted">按「下載圖片」存到手機或電腦。如果按了沒有反應，<b>長按下面的圖片</b>也可以儲存。</p>
+    <button class="cta" id="dlimg">📥 下載圖片</button><img src="${url}" alt="${esc(o.title)}" style="display:block;width:100%;margin-top:12px;border-radius:12px;border:2px solid var(--line)">`);
+  $("#dlimg", s).onclick = () => cv.toBlob(b => { if (b && saveFile(b, o.file + ".png")) toast("📥 已經開始下載"); });
+}
+
+/* ---------------- 百寶袋 ---------------- */
+function give(id) {
+  if (S.bag.includes(id)) return;
+  S.bag.push(id); save();
+  const it = APP.items.find(x => x.id === id); if (!it) return;
+  toast(`${it.icon} 「${it.name}」放進百寶袋了`);
+  const b = $("#btnBag"); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+}
+function openBag() {
+  const s = sheet("🎒 百寶袋", `<p class="small muted">點一下就能再看一次內容。目前收集 ${S.bag.length}／${APP.items.length} 件。</p>
+    <div class="bag">${APP.items.map(it => S.bag.includes(it.id)
+      ? `<button class="item" data-it="${it.id}"><span>${it.icon}</span>${it.name}</button>`
+      : `<div class="item lock"><span>❔</span>還沒拿到</div>`).join("")}</div>
+    <div id="itBody"></div>
+    <h3>隨時可以看</h3>
+    <div class="bag"><button class="item" data-fix="six"><span>📚</span>六科介紹與網頁</button><button class="item" data-fix="four"><span>🎫</span>四個升學管道</button></div>
+    <div id="fixBody"></div>
+    <div style="margin-top:14px;display:grid;gap:10px">${lineHTML()}</div>
+    <button class="cta ghost" id="again" style="margin-top:14px">🔄 從頭再玩一次</button>`);
+  $$("[data-it]", s).forEach(b => b.onclick = () => {
+    const it = APP.items.find(x => x.id === b.dataset.it);
+    $("#itBody", s).innerHTML = `<div class="hint"><b>${it.icon} ${it.name}</b><br><span style="font-weight:400">${it.desc()}</span></div>`;
+    $("#itBody", s).scrollIntoView({ block: "nearest", behavior: "smooth" });
+  });
+  $$("[data-fix]", s).forEach(b => b.onclick = () => {
+    $("#fixBody", s).innerHTML = b.dataset.fix === "six" ? sixHTML(S.dept)
+      : `<div class="hint" style="font-weight:400">${PORD.map(pathHTML).join("<hr style='border:0;border-top:2px dashed var(--line);margin:10px 0'>")}</div><div style="margin-top:10px">${warnHTML()}</div>`;
+    $("#fixBody", s).scrollIntoView({ block: "nearest", behavior: "smooth" });
+  });
+  let sure = false;
+  $("#again", s).onclick = e => { if (!sure) { sure = true; e.target.textContent = "再按一次，確定從頭開始"; return; } reset(); closeSheet(); go(0); };
+}
+
+/* ---------------- 關卡流程 ---------------- */
+function stage(html) { $("#stage").innerHTML = html; window.scrollTo(0, 0); }
+function drawHud() {
+  const sc = APP.scenes[S.step];
+  $("#hud").hidden = !!sc.bare;
+  $("#prog").innerHTML = `<div class="lab">${sc.lab || ""}</div><div class="bar"><i style="width:${Math.round(S.step / (APP.scenes.length - 1) * 100)}%"></i></div>`;
+  document.body.dataset.scene = sc.id || "";
+}
+function go(i) { S.step = Math.max(0, Math.min(i, APP.scenes.length - 1)); save(); drawHud(); APP.scenes[S.step].run(); }
+function next() { go(S.step + 1); }
+function back() { const sc = APP.scenes[S.step]; if (sc.back && sc.back()) return; go(S.step - 1); }
+function boot() {
+  $("#btnBag").onclick = openBag; $("#btnTl").onclick = () => openTimes(); $("#btnBack").onclick = back;
+  const old = load();
+  go(0);
+  if (old && old.step > 0) { const c = $("#resume"); if (c) { c.hidden = false; c.onclick = () => { S = Object.assign(base(), old); go(S.step); }; } }
+}
+/* ===== 遊戲三：實驗室解謎 =====
+ * 六間實驗室（六個科）各有兩題小謎題，兩題都解開才有獎勵。
+ * 前四間各得一把鑰匙（四個管道），後兩間各得一張紙條（越早越好、期限內可放棄）。
+ * 六間都解開後，到大門依「開放的先後順序」用鑰匙，最後選一間最想留下來的實驗室。 */
+const ROOM = {
+  civ: { no: "101", lab: "土木實驗室", qs: [
+    { t: "撐住那座橋", hint: "想一想：鐵塔、屋頂的支架，最常看到哪一種形狀？", why: "三角形最不容易變形，所以橋梁和鐵塔都用它來支撐。" },
+    { t: "地震來了，誰最穩", hint: "大樹不容易被颱風吹倒，是因為根扎得很深。", why: "房子看不見的地方最重要。地基打得深，地震和颱風來的時候才站得穩。土木科就是在學怎麼讓橋和房子保護大家的安全。" }] },
+  arc: { no: "102", lab: "建築實驗室", qs: [
+    { t: "幫這一家人設計一個家", hint: "先看住的人需要什麼：阿嬤走路要用助行器，妹妹想在有陽光的窗邊看書。", why: "同一塊地，設計不一樣，住起來就差很多。建築師會先想「誰要住在這裡」，再決定門、房間和窗戶的位置。" },
+    { t: "不開冷氣也涼快", hint: "風要有地方進來，也要有地方出去。", why: "讓風從一邊進來、另一邊出去，叫做「對流」。設計得好，夏天比較涼快，也更省電。建築科就是在學怎麼設計出讓人住得舒服的空間。" }] },
+  mec: { no: "103", lab: "機械實驗室", qs: [
+    { t: "齒輪往哪邊轉", hint: "兩個咬在一起的齒輪，轉的方向一定相反。一個一個數過去。", why: "相鄰的齒輪方向相反：順、逆、順、逆。腳踏車、電梯和手錶裡面都有齒輪。" },
+    { t: "用最小的力氣抬箱子", hint: "想一想開瓶器和剪刀：支點離要出力的東西很近。", why: "這叫槓桿原理：支點離重物越近，就越省力。挖土機的手臂、剪刀、開瓶器都是這樣設計的。機械科就是在學怎麼設計會動又省力的機器。" }] },
+  ele: { no: "104", lab: "電機實驗室", qs: [
+    { t: "讓社區的路燈亮起來", hint: "點一下電線就會轉。從儲電站開始，一段一段接到路燈。", why: "電要有一條完整的路才走得通。從發電廠到你家，中間每一段線路都是電機工程師設計的。" },
+    { t: "一顆燈壞了，其他的呢", hint: "先按「弄壞一顆燈泡」，看看兩種接法有什麼不一樣。", why: "家裡用的是並聯：客廳的燈壞了，冰箱和冷氣還是照常運作。醫院、捷運和工廠的電路都要這樣仔細設計，生活才不會突然停擺。電機科就是在學怎麼把電安全又穩定地送到每個地方。" }] },
+  etn: { no: "105", lab: "電子實驗室", qs: [
+    { t: "設計一盞聰明的路燈", hint: "什麼時候才真的需要燈？天色怎麼樣？旁邊有沒有人？兩個條件要同時成立。", why: "感測器把偵測到的資料傳上網路，再由程式決定要不要亮燈，這就是「物聯網」。智慧手錶、空氣品質偵測、自動澆水也都是這樣做的。" },
+    { t: "晶片是怎麼做出來的", hint: "先有材料，再把電路印上去，接著切開，最後測試。", why: "指甲大的一顆晶片裡，有非常多個小小的開關。手機、電動車和 AI 都要靠它，這就是「半導體」。電子科就是在學怎麼做晶片，還有怎麼用它做出會感應、會連網的裝置。" }] },
+  cs: { no: "106", lab: "資工實驗室", qs: [
+    { t: "寫程式拿鑰匙", hint: "機器人一開始面向上方。先往上走到頂，再右轉。", why: "把步驟一個一個排好，機器就會照著做，這就是寫程式。" },
+    { t: "找出程式裡的錯誤", hint: "照著程式一步一步走走看：走到最上面之後，鑰匙在哪一邊？", why: "找出錯誤再修好，叫做「除錯」。工程師每天都在做這件事，App 和遊戲才會越來越好用。資工科就是在學怎麼讓電腦幫你解決問題。" }] }
+};
+const REW = [{ key: "wan" }, { key: "you" }, { key: "lian" }, { key: "xu" },
+  { note: "early", icon: "📝", name: "紙條：越早越好", text: "對正修六個科有興趣，建議參加<b>越早的管道</b>，先用「早鳥直達鑰匙」拿到入學門票。" },
+  { note: "quit", icon: "📌", name: "紙條：期限內可以放棄", text: "拿到門票之後又有其他選擇，只要<b>在期限內辦理放棄</b>就可以。" }];
+const solved = () => S.x.solved || (S.x.solved = []);
+const qAt = k => (S.x.q || (S.x.q = {}))[k] || 0;
+const rewHTML = r => r.key
+  ? `<div class="keycard" style="--c:${pcolor(r.key)}"><b>🗝️ 拿到第 ${D.paths[r.key].n} 把鑰匙：${nick(r.key)}</b>${pathHTML(r.key)}</div>`
+  : `<div class="keycard" style="--c:#FFB627"><b>${r.icon} 找到一張${r.name}</b><p>${r.text}</p>${r.note === "quit" ? `<div style="margin-top:8px">${warnHTML()}</div>` : ""}</div>`;
+
+/* ---------- 謎題：每個函式把題目畫進 el，解開時呼叫 ok()，答錯呼叫 no(說明, 示意圖) ---------- */
+const bridge = kind => {
+  const sup = kind === "tri" ? [0, 1, 2, 3].map(i => `<path d="M${30 + i * 35} 34l17.5 30 17.5-30M${30 + i * 35} 64h35" />`).join("") + `<path d="M30 64h140"/>`
+    : kind === "sq" ? [0, 1, 2, 3].map(i => `<rect x="${30 + i * 35}" y="34" width="35" height="30"/>`).join("") : "";
+  return `<svg viewBox="0 0 200 80" aria-hidden="true"><path d="M0 34h30v46H0zM170 34h30v46h-30z" fill="#5d8f8a"/><g fill="none" stroke="#FFB627" stroke-width="3" stroke-linejoin="round">${sup}</g><path d="M22 32h156" stroke="#E9FBF6" stroke-width="6" stroke-linecap="round"/></svg>`;
+};
+/* 答錯時的示意圖：四方形歪掉、橋面彎下去 */
+const FAIL = {
+  sq: `<svg viewBox="0 0 260 130" role="img" aria-label="四方形支架被壓歪的示意圖"><rect width="260" height="130" rx="10" fill="#0F2F33"/>
+    <g fill="none" stroke="#6E9E99" stroke-width="2" stroke-dasharray="5 4">${[0, 1, 2].map(i => `<rect x="${50 + i * 50}" y="52" width="50" height="46"/>`).join("")}</g>
+    <g fill="none" stroke="#FFB627" stroke-width="4" stroke-linejoin="round">${[0, 1, 2].map(i => `<path d="M${72 + i * 50} 62h50l-22 36h-50z"/>`).join("")}</g>
+    <path d="M70 58h156" stroke="#E9FBF6" stroke-width="6" stroke-linecap="round" transform="rotate(3 150 58)"/>
+    <text x="150" y="46" text-anchor="middle" font-size="26">🚚</text><path d="M150 4v16m-6-7l6 8 6-8" stroke="#FF5C8A" stroke-width="3" fill="none"/>
+    <text x="130" y="122" text-anchor="middle" fill="#E9FBF6" font-size="13" font-weight="700">虛線是原本的樣子：四個角一鬆，就被壓成歪歪的</text></svg>`,
+  none: `<svg viewBox="0 0 260 130" role="img" aria-label="只有橋面被卡車壓彎的示意圖"><rect width="260" height="130" rx="10" fill="#0F2F33"/>
+    <path d="M0 44h40v60H0zM220 44h40v60h-40z" fill="#5d8f8a"/><path d="M34 42h192" stroke="#6E9E99" stroke-width="2" stroke-dasharray="5 4"/>
+    <path d="M34 42Q130 104 226 42" fill="none" stroke="#E9FBF6" stroke-width="6" stroke-linecap="round"/>
+    <text x="130" y="68" text-anchor="middle" font-size="26">🚚</text><path d="M130 6v16m-6-7l6 8 6-8" stroke="#FF5C8A" stroke-width="3" fill="none"/>
+    <text x="130" y="122" text-anchor="middle" fill="#E9FBF6" font-size="13" font-weight="700">虛線是原本的樣子：下面沒有東西撐，中間就彎下去</text></svg>`
+};
+const tower = d => `<svg viewBox="0 0 90 110" aria-hidden="true"><rect x="0" y="62" width="90" height="48" fill="#6b4f2f"/><rect x="28" y="62" width="34" height="${d}" fill="#B9C7C4"/><rect x="26" y="8" width="38" height="54" fill="#E9FBF6" stroke="#8FC0B8" stroke-width="3"/>${[16, 30, 44].map(y => `<path d="M33 ${y}h8m8 0h8" stroke="#35A7FF" stroke-width="5"/>`).join("")}<path d="M0 62h90" stroke="#FFB627" stroke-width="3"/></svg>`;
+const plan = kind => {
+  const win = { a: [[0, 40, 0, 70]], b: [[0, 20, 0, 45], [0, 65, 0, 90]], c: [[0, 40, 0, 70], [150, 40, 150, 70]] }[kind];
+  const air = kind === "c" ? `<path d="M-22 55h190m-10-7l10 7-10 7" />` : kind === "a" ? `<path d="M-22 55h46q14 0 14-14t-14-14" />` : `<path d="M-22 32h40q12 0 12 22t-12 22h-40m10-7l-10 7 10 7" />`;
+  return `<svg viewBox="-28 0 206 110" aria-hidden="true"><rect x="0" y="10" width="150" height="90" fill="#17454B" stroke="#8FC0B8" stroke-width="5"/>${win.map(w => `<path d="M${w[0]} ${w[1]}V${w[3]}" stroke="#35A7FF" stroke-width="8" transform="translate(${w[0] ? 0 : 0} 0)"/>`).join("")}<g fill="none" stroke="#FFD23F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${air}</g><text x="75" y="60" text-anchor="middle" fill="#E9FBF6" font-size="14" font-weight="700">房間</text></svg>`;
+};
+const seg = (id, label, opts, cur) => `<div class="segrow"><span>${label}</span><div class="seg2" data-g="${id}">${opts.map((o, i) => `<button data-i="${i}" aria-pressed="${i === cur}">${o}</button>`).join("")}</div></div>`;
+const bulbs = (kind, broken) => {
+  const on = kind === "p" ? i => i !== broken : () => broken < 0;
+  const b = (x, y, i) => `<circle cx="${x}" cy="${y}" r="13" fill="${i === broken ? "#3a4b4d" : on(i) ? "#FFD23F" : "#3a4b4d"}" stroke="#E9FBF6" stroke-width="3" ${on(i) && i !== broken ? 'filter="drop-shadow(0 0 6px #FFD23F)"' : ""}/>${i === broken ? `<path d="M${x - 8} ${y - 8}l16 16m0-16l-16 16" stroke="#FF5C8A" stroke-width="4"/>` : ""}`;
+  return kind === "s"
+    ? `<svg viewBox="0 0 220 90" aria-hidden="true"><path d="M20 20h180v50H20z" fill="none" stroke="#8FC0B8" stroke-width="4"/><rect x="92" y="60" width="36" height="20" rx="4" fill="#19C3A6"/><text x="110" y="75" text-anchor="middle" font-size="12" font-weight="700" fill="#0F2F33">電</text>${[60, 110, 160].map((x, i) => b(x, 20, i)).join("")}</svg>`
+    : `<svg viewBox="0 0 220 90" aria-hidden="true"><path d="M20 14h180M20 76h180M20 14v62" fill="none" stroke="#8FC0B8" stroke-width="4"/><rect x="2" y="35" width="36" height="20" rx="4" fill="#19C3A6"/><text x="20" y="50" text-anchor="middle" font-size="12" font-weight="700" fill="#0F2F33">電</text>${[80, 130, 180].map((x, i) => `<path d="M${x} 14v62" stroke="#8FC0B8" stroke-width="4"/>` + b(x, 45, i)).join("")}</svg>`;
+};
+const PZ = {
+  civ: [
+    (el, ok, no) => {
+      el.innerHTML = `<p><b>一台大卡車要過橋。哪一種橋最穩？</b></p><div class="pick3">${[["none", "只有橋面"], ["sq", "四方形支架"], ["tri", "三角形支架"]].map(o => `<button data-v="${o[0]}"><span>${o[1]}</span>${bridge(o[0])}</button>`).join("")}</div><div id="drive" style="height:40px;overflow:hidden;margin-top:6px"></div>`;
+      $$("button", el).forEach(b => b.onclick = () => { const v = b.dataset.v; if (v === "tri") { $("#drive", el).innerHTML = `<span class="truck">🚚</span>`; ok(); } else no(v === "sq" ? "四方形被壓的時候，四個角很容易鬆動，整個就歪成平行四邊形了。換一種試試。" : "只有橋面，下面沒有東西撐著，卡車一上去中間就彎了。需要支架。", FAIL[v]); });
+    },
+    (el, ok, no) => {
+      el.innerHTML = `<p><b>三棟一樣高的大樓，遇到地震。哪一棟最穩？</b></p><div class="pick3 col3">${[["a", "地基很淺", 10], ["b", "地基打得很深", 44], ["c", "沒有地基", 0]].map(o => `<button data-v="${o[0]}">${tower(o[2])}<span>${o[1]}</span></button>`).join("")}</div>`;
+      $$("button", el).forEach(b => b.onclick = () => b.dataset.v === "b" ? ok() : no(b.dataset.v === "a" ? "地基太淺，地面一搖，大樓就跟著晃得很厲害。" : "沒有地基，就像把鉛筆直直放在桌上，一碰就倒。"));
+    }],
+  arc: [
+    (el, ok, no) => {
+      const st = { door: 0, room: 0, rot: 0 };
+      const draw = () => {
+        el.innerHTML = `<p><b>一家人要搬進來。幫他們把家設計好，再按「請他們來看」。</b></p>
+          <div class="folk"><span>👵 阿嬤：走路要用助行器</span><span>👧 妹妹：喜歡在有陽光的窗邊看書</span></div>
+          ${seg("door", "大門口", ["三階樓梯", "平緩的斜坡"], st.door)}${seg("room", "阿嬤的房間", ["二樓", "一樓，浴室旁邊"], st.room)}
+          <div class="segrow"><span>妹妹書桌的窗戶（藍色那一邊）</span></div>
+          <div class="sunrow"><div class="house" id="hs" style="transform:rotate(${st.rot * 90}deg)"><span style="transform:rotate(${-st.rot * 90}deg)">書桌</span></div><div class="sun">☀️<small>太陽在這邊</small></div></div>
+          <div class="two"><button id="rot">↻ 把房子轉 90 度</button><button class="go" id="chk">🏠 請他們來看</button></div>`;
+        $$(".seg2 button", el).forEach(b => b.onclick = () => { st[b.parentNode.dataset.g] = +b.dataset.i; beep([[500, .04]]); draw(); });
+        $("#rot", el).onclick = () => { st.rot++; beep([[500, .05]]); draw(); };
+        $("#chk", el).onclick = () => {
+          const bad = [];
+          if (!st.door) bad.push("👵 阿嬤：「門口有樓梯，我的助行器上不去。」");
+          if (!st.room) bad.push("👵 阿嬤：「房間在二樓，每天爬樓梯好辛苦。」");
+          if (st.rot % 4 !== 1) bad.push("👧 妹妹：「書桌這邊曬不到太陽，白天也要開燈。」");
+          bad.length ? no(bad.join("<br>")) : ok();
+        };
+      };
+      draw();
+    },
+    (el, ok, no) => {
+      el.innerHTML = `<p><b>夏天好熱！哪一種開窗方式，風最容易吹過整個房間？</b>（藍色是窗戶，黃色是風）</p><div class="pick3">${[["a", "只開一扇窗"], ["b", "同一面牆開兩扇窗"], ["c", "兩面牆各開一扇窗"]].map(o => `<button data-v="${o[0]}"><span>${o[1]}</span>${plan(o[0])}</button>`).join("")}</div>`;
+      $$("button", el).forEach(b => b.onclick = () => b.dataset.v === "c" ? ok() : no(b.dataset.v === "a" ? "風進得來，卻沒有地方出去，房間還是悶悶的。" : "兩扇窗在同一邊，風轉一圈就出去了，吹不到房間裡面。"));
+    }],
+  mec: [
+    (el, ok, no) => {
+      const gear = (x, i) => `<g class="g${i}"><circle cx="${x}" cy="50" r="24" fill="#17454B" stroke="${i === 3 ? "#FFB627" : "#8FC0B8"}" stroke-width="9" stroke-dasharray="7.5 5.07"/><circle cx="${x}" cy="50" r="6" fill="#E9FBF6"/><path d="M${x} 50v-17" stroke="#E9FBF6" stroke-width="4" stroke-linecap="round"/></g>`;
+      el.innerHTML = `<p><b>第一個齒輪「順時針」轉。最後一個（黃色）會往哪邊轉？</b></p><svg viewBox="0 0 250 100" id="gs" role="img" aria-label="四個咬在一起的齒輪">${[35, 95, 155, 215].map(gear).join("")}<text x="35" y="12" text-anchor="middle" fill="#E9FBF6" font-size="13" font-weight="700">↻ 順時針</text><text x="215" y="12" text-anchor="middle" fill="#FFB627" font-size="13" font-weight="700">？</text></svg>
+        <div class="cmds"><button data-v="cw">↻ 順時針</button><button data-v="ccw">↺ 逆時針</button><button data-v="no">不會動</button></div>`;
+      $$("[data-v]", el).forEach(b => b.onclick = () => { if (b.dataset.v === "ccw") { $$("#gs g", el).forEach((g, i) => g.classList.add("spin", i % 2 ? "r" : "f")); ok(); } else no(b.dataset.v === "no" ? "它們咬在一起，一個動，全部都會動。" : "相鄰的兩個齒輪，方向會相反喔。再數一次。"); });
+    },
+    (el, ok, no) => {
+      let pos = 1; const X = [70, 130, 190], F = [1, 3, 5], T = ["輕輕一壓就抬起來了！", "抬得動，但是有點吃力。", "用盡全力還是抬不太起來。"];
+      const draw = tried => {
+        el.innerHTML = `<p><b>要用一根長桿抬起很重的箱子。支點（三角形）放在哪裡最省力？</b></p>
+          <svg viewBox="0 0 260 110" role="img" aria-label="槓桿示意圖"><path d="M20 ${tried && pos === 0 ? 50 : 62}L240 ${tried && pos === 0 ? 74 : 62}" stroke="#E9FBF6" stroke-width="7" stroke-linecap="round"/><path d="M${X[pos]} 68l-16 28h32z" fill="#FFB627"/><path d="M0 96h260" stroke="#6E9E99" stroke-width="3"/>
+            <text x="30" y="${tried && pos === 0 ? 44 : 56}" text-anchor="middle" font-size="30">📦</text><text x="232" y="50" text-anchor="middle" font-size="26">✋</text><text x="232" y="20" text-anchor="middle" fill="#FFB627" font-size="13" font-weight="700">往下壓</text></svg>
+          <div class="cmds"><button data-p="0" aria-pressed="${pos === 0}">靠近箱子</button><button data-p="1" aria-pressed="${pos === 1}">正中間</button><button data-p="2" aria-pressed="${pos === 2}">靠近手</button></div>
+          <div class="force"><span>需要的力氣</span>${[1, 2, 3, 4, 5].map(i => `<i class="${tried && i <= F[pos] ? "on" : ""}"></i>`).join("")}</div>
+          <div class="two"><span></span><button class="go" id="try">💪 壓壓看</button></div>`;
+        $$("[data-p]", el).forEach(b => b.onclick = () => { pos = +b.dataset.p; draw(false); });
+        $("#try", el).onclick = () => { draw(true); pos === 0 ? ok() : no(T[pos] + "把支點換個位置，看看力氣會不會變少。"); };
+      };
+      draw(false);
+    }],
+  ele: [
+    (el, ok) => {
+      const T = ["L", "I", "L", "L", "I", "L", "I", "L", "L"], rot = [0, 0, 1, 3, 0, 1, 1, 3, 2];
+      const conn = i => T[i] === "I" ? (rot[i] % 2 ? [1, 3] : [0, 2]) : [rot[i] % 4, (rot[i] + 1) % 4];
+      const trace = () => { const live = []; let r = 0, c = 0, e = 3; for (let n = 0; n < 12; n++) { const i = r * 3 + c, k = conn(i); if (!k.includes(e)) return { live, done: false }; live.push(i); const x = k[0] === e ? k[1] : k[0]; if (i === 8 && x === 1) return { live, done: true }; r += [-1, 0, 1, 0][x]; c += [0, 1, 0, -1][x]; if (r < 0 || r > 2 || c < 0 || c > 2) return { live, done: false }; e = (x + 2) % 4; } return { live, done: false }; };
+      let fin = false;
+      const draw = () => {
+        const t = trace();
+        el.innerHTML = `<p><b>颱風過後，社區的路燈不亮了，晚上回家的人看不到路。</b>點一下電線會轉 90 度，把儲電站的電接到路燈！</p><div class="circ">${[0, 1, 2].map(r => `<div class="end">${r === 0 ? "🔋" : ""}</div>${[0, 1, 2].map(c => { const i = r * 3 + c; return `<button class="tile ${t.live.includes(i) ? "live" : ""}" data-i="${i}" aria-label="電線 ${i + 1}"><svg viewBox="0 0 60 60" style="transform:rotate(${rot[i] * 90}deg)"><path d="${T[i] === "I" ? "M30 0v60" : "M30 0v30h30"}"/></svg></button>`; }).join("")}<div class="end" style="${r === 2 && t.done ? "filter:drop-shadow(0 0 10px #FFD23F)" : r === 2 ? "opacity:.4" : ""}">${r === 2 ? "💡" : ""}</div>`).join("")}</div><p class="small" style="color:#8FC0B8;margin-top:6px">🔋 儲電站　💡 路燈</p>`;
+        $$(".tile", el).forEach(b => b.onclick = () => { if (fin) return; rot[+b.dataset.i]++; beep([[420, .04]]); draw(); });
+        if (t.done && !fin) { fin = true; ok(); }
+      };
+      draw();
+    },
+    (el, ok, no) => {
+      let broken = -1;
+      const draw = () => {
+        el.innerHTML = `<p><b>同樣三顆燈泡，有兩種接法。先按按鈕弄壞一顆，看看會怎樣。</b></p>
+          <div class="cir2"><div><b>甲：排成一條線</b>${bulbs("s", broken)}</div><div><b>乙：每顆燈各走各的路</b>${bulbs("p", broken)}</div></div>
+          <div class="two"><button id="brk">${broken < 0 ? "💥 弄壞一顆燈泡" : "🔧 把燈泡修好"}</button><span></span></div>
+          <p style="margin-top:10px"><b>家裡的電路，應該用哪一種接法？</b></p><div class="two"><button data-v="s">甲：排成一條線</button><button data-v="p">乙：各走各的路</button></div>`;
+        $("#brk", el).onclick = () => { broken = broken < 0 ? 1 : -1; beep([[300, .08]]); draw(); };
+        $$("[data-v]", el).forEach(b => b.onclick = () => b.dataset.v === "p" ? ok() : no("用甲的接法，一顆燈壞了，電就過不去，全部都不亮。家裡如果這樣接，一個燈泡壞掉就全家停電了。"));
+      };
+      draw();
+    }],
+  etn: [
+    (el, ok, no) => {
+      const st = { a: 1, op: 1, b: 1 }, A = ["天黑了", "天亮著"], OP = ["而且", "或者"], B = ["有人靠近", "沒有人"];
+      const SC = [["☀️🚶", "白天，有人", 0, 1], ["☀️", "白天，沒人", 0, 0], ["🌙", "晚上，沒人", 1, 0], ["🌙🚶", "晚上，有人", 1, 1]];
+      const lamp = (dark, man) => { const x = st.a === 0 ? dark : !dark, y = st.b === 0 ? man : !man; return st.op === 0 ? (x && y) : (x || y); };
+      const draw = show => {
+        el.innerHTML = `<p><b>路燈上裝了兩個感測器：一個看天色，一個看有沒有人。</b>幫它寫一條規則，讓它<b>只在需要的時候亮</b>，最省電。</p>
+          <div class="rule">如果 <button data-k="a">${A[st.a]}</button> <button data-k="op">${OP[st.op]}</button> <button data-k="b">${B[st.b]}</button>，就亮燈。</div>
+          <p class="small" style="color:#8FC0B8">點黃色的字可以換條件。</p>
+          <div class="two"><span></span><button class="go" id="run">📡 上線測試</button></div>
+          ${show ? `<div class="tests">${SC.map(s => { const on = lamp(!!s[2], !!s[3]), want = !!(s[2] && s[3]); return `<div class="${on === want ? "ok" : "ng"}"><span>${s[0]}</span><small>${s[1]}</small><b>${on ? "💡 亮" : "⚫ 不亮"}</b><em>${on === want ? "✔" : "✘"}</em></div>`; }).join("")}</div>` : ""}`;
+        $$(".rule button", el).forEach(b => b.onclick = () => { st[b.dataset.k] = 1 - st[b.dataset.k]; beep([[520, .04]]); draw(false); });
+        $("#run", el).onclick = () => {
+          draw(true);
+          const pass = SC.every(s => lamp(!!s[2], !!s[3]) === !!(s[2] && s[3]));
+          pass ? ok() : no("有打 ✘ 的情況不對：白天不需要燈，沒有人的時候也不需要。只有「晚上，有人」才要亮。");
+        };
+      };
+      draw(false);
+    },
+    (el, ok, no) => {
+      const STEP = ["把矽做成又圓又薄的「晶圓」", "用光把超細的電路圖印到晶圓上", "把晶圓切成一顆一顆的晶片", "測試沒問題，裝進手機和電動車"], mix = [2, 0, 3, 1], done = [];
+      const draw = () => {
+        el.innerHTML = `<p><b>手機和電動車裡的晶片，是這樣做出來的。照順序點，從第一步開始。</b></p><div class="pick3">${mix.map(i => `<button data-i="${i}" ${done.includes(i) ? "disabled" : ""} class="${done.includes(i) ? "picked" : ""}"><span>${STEP[i]}</span><span class="ord">${done.includes(i) ? done.indexOf(i) + 1 : ""}</span></button>`).join("")}</div>`;
+        $$("button", el).forEach(b => b.onclick = () => { const i = +b.dataset.i; if (i !== done.length) return no(done.length === 0 ? "還沒有材料呢。第一步要先準備晶圓。" : "順序不太對。想一想：要先印好電路，才能切開；切開之後才測試。"); good(); done.push(i); draw(); if (done.length === 4) ok(); });
+      };
+      draw();
+    }],
+  cs: [
+    (el, ok, no) => {
+      const WALL = ["1,1", "1,2"], G = [2, 0]; let prog = [], busy = false, bot = { c: 0, r: 2, d: 0 };
+      const CN = { F: "⬆ 前進", L: "↺ 左轉", R: "↻ 右轉" };
+      const draw = () => {
+        el.innerHTML = `<p><b>幫機器人排好指令，讓它走到鑰匙那一格。</b>斜線的格子是牆。</p><div class="grid">${[0, 1, 2].map(r => [0, 1, 2].map(c => `<div class="cell ${WALL.includes(c + "," + r) ? "wall" : ""}">${bot.c === c && bot.r === r ? `<span class="bot" style="transform:rotate(${bot.d * 90}deg)">▲</span>` : c === G[0] && r === G[1] ? "🗝️" : ""}</div>`).join("")).join("")}</div>
+          <div class="prog" aria-label="我的程式">${prog.length ? prog.map(p => `<span>${CN[p]}</span>`).join("") : "<em>按下面的按鈕，把指令排進來（最多 6 個）</em>"}</div>
+          <div class="cmds">${Object.keys(CN).map(k => `<button data-c="${k}">${CN[k]}</button>`).join("")}</div><div class="two"><button id="clr">清除重排</button><button class="go" id="run">▶ 執行</button></div>`;
+        $$("[data-c]", el).forEach(b => b.onclick = () => { if (busy) return; if (prog.length >= 6) return toast("最多 6 個指令"); prog.push(b.dataset.c); draw(); });
+        $("#clr", el).onclick = () => { if (busy) return; prog = []; bot = { c: 0, r: 2, d: 0 }; draw(); };
+        $("#run", el).onclick = async () => {
+          if (busy || !prog.length) return; busy = true; bot = { c: 0, r: 2, d: 0 }; let hit = false;
+          for (const p of prog) {
+            if (p === "L") bot.d = (bot.d + 3) % 4; else if (p === "R") bot.d = (bot.d + 1) % 4;
+            else { const c = bot.c + [0, 1, 0, -1][bot.d], r = bot.r + [-1, 0, 1, 0][bot.d]; if (c < 0 || c > 2 || r < 0 || r > 2 || WALL.includes(c + "," + r)) { hit = true; break; } bot.c = c; bot.r = r; }
+            draw(); beep([[520, .04]]); await sleep(330); if (!document.body.contains(el)) return;
+          }
+          busy = false;
+          if (!hit && bot.c === G[0] && bot.r === G[1]) return ok();
+          no(hit ? "機器人撞到牆了。按「清除重排」，換個走法。" : "還沒走到鑰匙那一格。按「清除重排」，再排一次。");
+        };
+      };
+      draw();
+    },
+    (el, ok, no) => {
+      const P = ["⬆ 前進", "⬆ 前進", "↺ 左轉", "⬆ 前進", "⬆ 前進"];
+      el.innerHTML = `<p><b>同學寫了這個程式，機器人卻沒拿到鑰匙，還撞到了邊邊。</b>哪一步寫錯了？點那一步。</p>
+        <div class="grid">${[0, 1, 2].map(r => [0, 1, 2].map(c => `<div class="cell ${["1,1", "1,2"].includes(c + "," + r) ? "wall" : ""}">${c === 0 && r === 2 ? `<span class="bot">▲</span>` : c === 2 && r === 0 ? "🗝️" : ""}</div>`).join("")).join("")}</div>
+        <div class="pick3" style="margin-top:10px">${P.map((p, i) => `<button data-i="${i}"><span>第 ${i + 1} 步　${p}</span></button>`).join("")}</div>`;
+      $$("[data-i]", el).forEach(b => b.onclick = () => { if (+b.dataset.i === 2) { b.innerHTML = `<span>第 3 步　<s>↺ 左轉</s> → ↻ 右轉</span>`; b.classList.add("picked"); ok(); } else no(+b.dataset.i < 2 ? "這一步沒問題：機器人要先往上走兩格。" : "這一步本身沒有錯，問題出在它之前轉錯了方向。"); });
+    }]
+};
+
+function roomScene(k) {
+  const R = ROOM[k], d = DEPT[k], qi = qAt(k), Q = R.qs[qi]; let fails = 0, done = false;
+  stage(`<div class="card"><p class="kicker"><span style="font-family:var(--num)">${R.no}</span>｜${d.icon} ${R.lab}｜第 ${qi + 1} 題，共 2 題</p><h2>${Q.t}</h2><div class="pz" id="pz"></div><div id="fb"></div>
+    <div class="two" id="help"><button id="hint">💡 給我提示</button><button id="leave">🚪 先回走廊</button></div></div><div id="after"></div>`);
+  const finish = () => {
+    if (done) return; done = true; $("#help").hidden = true;
+    if (qi === 0) {
+      good(); S.x.q[k] = 1; save();
+      $("#fb").innerHTML = `<div class="hint">✅ 第 1 題解開了！${Q.why}</div>`;
+      $("#after").innerHTML = `<button class="cta" id="ok">還有第 2 題，解開才有獎勵</button>`;
+      $("#ok").onclick = () => go(S.step);
+    } else {
+      win(); confetti();
+      const n = solved().length, r = REW[n]; solved().push(k); S.x.room = ""; save();
+      give(r.key ? "k_" + r.key : "n_" + r.note);
+      $("#fb").innerHTML = `<div class="hint">✅ 兩題都解開了！${Q.why}</div>`;
+      $("#after").innerHTML = `<div class="card"><p class="kicker">認識這一間：${d.name}</p><p>${d.one}</p><dl class="kv"><dt>📖 學什麼</dt><dd>${d.learn}</dd><dt>🚀 未來職業</dt><dd>${d.jobs.join("、")}</dd></dl>${rewHTML(r)}</div>
+        <button class="cta" id="ok">${n === 5 ? "六間都解開了！回走廊" : "回走廊，挑下一間"}</button>`;
+      $("#ok").onclick = () => go(S.step);
+    }
+    $("#after").scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+  const no = (msg, pic) => {
+    if (done) return; bad(); fails++;
+    $("#fb").innerHTML = `<div class="hint">💡 ${msg}${pic ? `<div style="margin-top:8px">${pic}</div>` : ""}</div>${fails >= 3 ? `<button class="cta ghost" id="skip" style="margin-top:8px">這題有點難，請學長姐幫我解開</button>` : ""}`;
+    const s = $("#skip"); if (s) s.onclick = finish;
+    $("#fb").scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+  $("#hint").onclick = () => { $("#fb").innerHTML = `<div class="hint">💡 ${Q.hint}</div>`; };
+  $("#leave").onclick = () => { S.x.room = ""; save(); go(S.step); };
+  PZ[k][qi]($("#pz"), finish, no);
+}
+
+const APP = {
+  key: "csu5-six-labs-116",
+  card: { bg: "#F3FBF8", head: "#0F2F33", headSub: "#FFB627", ink: "#0F2F33", sub: "#0B7D6B" },
+  warn: "已經報到又想改用別把鑰匙，須在期限前辦理放棄。",
+  skin: {
+    wan: { icon: "🗝️", nick: "早鳥直達鑰匙", analog: "最早拿到的鑰匙。選定 1 所學校的 1 個科，會考前就知道結果。" },
+    you: { icon: "🗝️", nick: "志願配對鑰匙", analog: "排好最多 30 個志願，電腦會幫你配到順位最前面、還有名額的那一個。" },
+    lian: { icon: "🗝️", nick: "現場選科鑰匙", analog: "親自到學校，依順序當場選科。前兩個管道沒用完的名額也會加進來。" },
+    xu: { icon: "🗝️", nick: "加開名額鑰匙", analog: "還有名額的學校會再開放一次，時間看各校公告。" }
+  },
+  items: [
+    { id: "map", icon: "🗺️", name: "五年地圖", desc: () => `在這棟大樓的五年：<br>🪙 ${ADV.free}<br>🔬 ${ADV.lab}<br>📜 ${ADV.cert}<br>🤝 ${ADV.intern}<br>🎓 ${ADV.degree}` },
+    ...PORD.map(p => ({ id: "k_" + p, icon: "🗝️", name: `第 ${D.paths[p].n} 把鑰匙`, desc: () => pathHTML(p) })),
+    { id: "n_early", icon: "📝", name: "紙條：越早越好", desc: () => REW[4].text },
+    { id: "n_quit", icon: "📌", name: "紙條：期限內可以放棄", desc: () => `${REW[5].text}<div style="margin-top:8px">${warnHTML()}</div>` },
+    { id: "pass", icon: "🪪", name: "實驗室通行證", desc: () => `你最想留下來的是 <b>${DEPT[S.dept].name}</b>。${deptHTML(S.dept)}` }
+  ],
+  scenes: [
+    { id: "title", bare: 1, run() {
+      stage(`<div class="tape"></div><div class="card cover"><p class="no">CSU LAB TOWER ｜ ${D.cycle}</p><h1>實驗室解謎</h1>
+        <p style="margin-top:8px">正修夢想實驗大樓的大門鎖上了！這是學長姐設計的闖關活動。</p><p>六間實驗室，每間兩題小謎題。解開它們，找到<b>四把鑰匙</b>，就能打開大門。</p>
+        <p class="small" style="color:var(--muted);margin-top:8px">正修科技大學五專部｜給國中同學的升學小遊戲，大約 10 分鐘。</p></div>
+        <div class="doors" aria-hidden="true">${DORD.map(k => `<div class="door" style="--c:${DEPT[k].color};min-height:0"><span class="no">${ROOM[k].no}</span><span class="ic">${DEPT[k].icon}</span></div>`).join("")}</div>
+        <button class="cta" id="go">開始闖關</button><button class="cta ghost" id="resume" hidden>繼續上次的進度</button><div class="tape"></div>`);
+      $("#go").onclick = () => { reset(); good(); next(); };
+    } },
+    { id: "me", lab: "領闖關證", run() { profileScene({ kicker: "大樓服務台", title: "先領一張闖關證", lead: "寫上暱稱，再選一張大頭照，學長姐才知道是誰來挑戰。", btn: "領好了，進大樓" }); } },
+    { id: "story", lab: "聽廣播", run() {
+      stage(`<div class="card"><p class="kicker">📢 大樓廣播</p><h2>「${who()}，歡迎來到夢想實驗大樓！」</h2>
+        <p>「這棟樓有<b>六間實驗室</b>，就是正修五專的六個科：土木、建築、機械、電機、電子、資工。」</p>
+        <p>「每一間都有<b>兩題</b>小謎題。兩題都解開，才能拿到<b>鑰匙</b>或<b>紙條</b>。」</p>
+        <p>「四把鑰匙，代表進五專的<b>四個管道</b>。集滿了，大門就會打開。」</p>
+        <p class="small muted">不用急，沒有時間限制。卡住的時候可以按「給我提示」。</p></div>
+        <div class="card"><h3 style="margin-top:0">🗺️ 順便送你一張五年地圖</h3><p class="small">在五專的五年，你會在這些實驗室裡：前三年免學費、用大學的設備動手做、考專業證照、做專題和實習，20 歲拿到副學士學位。</p></div>
+        <button class="cta" id="ok">走進走廊</button>`);
+      $("#ok").onclick = () => { give("map"); S.x.t0 = S.x.t0 || Date.now(); next(); };
+    } },
+    { id: "hub", lab: "實驗室走廊", run() {
+      if (S.x.room && !solved().includes(S.x.room)) return roomScene(S.x.room);
+      const n = solved().length;
+      stage(`<div class="card cover"><p class="kicker" style="color:var(--pri)">實驗室走廊｜已解開 ${n}／6 間</p><h2 style="color:#fff">${n === 6 ? "六間都解開了！" : n ? "挑下一間實驗室" : "從哪一間開始都可以"}</h2>
+        <div class="doors">${DORD.map(k => { const ok = solved().includes(k); return `<button class="door ${ok ? "done" : ""}" data-k="${k}" style="--c:${DEPT[k].color}"><span class="no">${ROOM[k].no}</span><span class="ic">${DEPT[k].icon}</span><span class="nm">${DEPT[k].name.replace("科", "")}</span><span class="st">${ok ? "✅ 已解開" : qAt(k) ? "解開 1／2 題" : ROOM[k].qs[0].t}</span></button>`; }).join("")}</div>
+        <p class="small" style="color:var(--muted);margin-top:12px">我的鑰匙和紙條（點一下可以再看）</p>
+        <div class="rack">${REW.map((r, i) => i < n ? `<button class="slot on" data-r="${i}" style="--c:${r.key ? pcolor(r.key) : "#FFB627"}" aria-label="${r.key ? nick(r.key) : r.name}">${r.key ? "🗝️" : r.icon}</button>` : `<div class="slot">${i < 4 ? i + 1 : "?"}</div>`).join("")}</div></div>
+        <div id="peek"></div>
+        ${n === 6 ? `<button class="cta" id="ok">帶著四把鑰匙去大門</button>` : ""}`);
+      $$(".door").forEach(b => b.onclick = () => { const k = b.dataset.k; if (solved().includes(k)) { $("#peek").innerHTML = `<div class="card"><p class="kicker">${ROOM[k].no}｜${ROOM[k].lab}</p>${deptHTML(k)}</div>`; $("#peek").scrollIntoView({ block: "nearest", behavior: "smooth" }); return; } S.x.room = k; save(); good(); go(S.step); });
+      $$(".slot.on").forEach(b => b.onclick = () => { $("#peek").innerHTML = `<div class="card">${rewHTML(REW[+b.dataset.r])}</div>`; $("#peek").scrollIntoView({ block: "nearest", behavior: "smooth" }); });
+      if (n === 6) $("#ok").onclick = next;
+    }, back() { if (S.x.room) { S.x.room = ""; save(); go(S.step); return true; } } },
+    { id: "gate", lab: "打開大門", run() {
+      const mix = ["lian", "wan", "xu", "you"], done = [];
+      const draw = () => {
+        stage(`<div class="tape"></div><div class="card"><p class="kicker">大門｜四道鎖</p><h2>四把鑰匙，要照「開放的先後順序」來開</h2><p class="small muted">從最早開放的管道開始，一把一把點。</p>
+          <div class="opts">${mix.map(p => `<button class="opt ${done.includes(p) ? "ok" : ""}" data-p="${p}" ${done.includes(p) ? "disabled" : ""}><span>🗝️</span><span>${nick(p)}<br><span class="small" style="font-weight:400">${D.paths[p].short}</span></span>${done.includes(p) ? `<span style="margin-left:auto;font-family:var(--num);font-weight:700">第 ${done.indexOf(p) + 1} 道</span>` : ""}</button>`).join("")}</div><div id="fb"></div></div><div id="nx"></div>`);
+        if (done.length === 4) {
+          win(); confetti();
+          $("#fb").innerHTML = `<div class="hint">✅ 喀！大門開了。完全免試 → 優先免試 → 聯合免試 → 免試續招，一個接一個。這一個沒有錄取，還有下一個。</div><div style="margin-top:10px">${warnHTML()}</div>`;
+          $("#nx").innerHTML = `<button class="cta">走出大門之前，還有一題</button>`; $("#nx button").onclick = next; return;
+        }
+        $$(".opt:not([disabled])").forEach(b => b.onclick = () => {
+          if (b.dataset.p !== PORD[done.length]) { bad(); b.classList.remove("no"); void b.offsetWidth; b.classList.add("no"); $("#fb").innerHTML = `<div class="hint">💡 這一把比較晚。提示：${done.length === 0 ? "最早的那個，在會考前就開放了。" : done.length === 1 ? "會考後的第一個，是可以填 30 個志願的那個。" : "現場選科在七月初，加開名額排在最後。"}</div>`; return; }
+          good(); done.push(b.dataset.p); draw();
+        });
+      };
+      draw();
+    } },
+    { id: "pick", lab: "最想留下來的那一間", run() {
+      let pick = S.dept || "";
+      const draw = () => {
+        stage(`<div class="card"><p class="kicker">最後一題，沒有標準答案</p><h2>六間實驗室裡，你最想再待久一點的是哪一間？</h2><p class="small muted">想一想剛剛哪一題玩得最開心。選你喜歡的就好，這就是「適合你」的線索。</p>
+          <div class="grid2">${DORD.map(k => `<button class="opt ${k === pick ? "sel" : ""}" data-k="${k}"><b>${DEPT[k].icon} ${DEPT[k].name}</b><small>${ROOM[k].no}｜${ROOM[k].qs[0].t}</small></button>`).join("")}</div>
+          ${pick ? `<div class="hint" style="font-weight:400"><b>${DEPT[pick].icon} ${DEPT[pick].name}</b>${deptHTML(pick)}</div>` : ""}</div>
+          <button class="cta" id="ok" ${pick ? "" : "disabled"}>${pick ? `就是${DEPT[pick].name}，領通行證` : "先選一間"}</button>`);
+        $$(".grid2 .opt").forEach(b => b.onclick = () => { pick = b.dataset.k; draw(); });
+        $("#ok").onclick = () => { S.dept = pick; S.x.t1 = S.x.t1 || Date.now(); give("pass"); next(); };
+      };
+      draw();
+    } },
+    { id: "final", lab: "解謎成功", run() {
+      const d = DEPT[S.dept]; S.done = true; save(); win(); confetti();
+      const sec = Math.max(0, Math.round(((S.x.t1 || Date.now()) - (S.x.t0 || Date.now())) / 1000)), mm = Math.floor(sec / 60), ss = sec % 60;
+      stage(`<div class="tape"></div><div class="card pass"><div class="hd">${meHTML(60)}<div><div class="small" style="color:#8FC0B8;font-weight:700">夢想實驗大樓｜實驗室通行證</div><div class="nm">${who()}</div></div><div style="margin-left:auto;font-size:40px">${d.icon}</div></div>
+          <div class="bd"><p class="small muted">解謎成功！解開 6 間實驗室、12 題謎題，用了</p><p class="time">${pad(mm)} 分 ${pad(ss)} 秒</p>
+          <dl class="kv"><dt>🚪 最想留下來</dt><dd>正修科技大學五專部 <b>${d.name}</b></dd><dt>📖 學什麼</dt><dd>${d.learn}</dd><dt>🚀 未來</dt><dd>${d.jobs.join("、")}</dd><dt>🗝️ 第一把鑰匙</dt><dd><b>早鳥直達</b>（${D.paths.wan.name}）</dd></dl></div></div>
+        <button class="cta" id="fDl">📥 下載實驗室通行證</button>
+        <div class="card"><h2>🗝️ 早鳥直達的關鍵時間</h2><p class="small muted">對正修六個科有興趣，建議從最早的管道開始，先拿到入學門票。之後有其他選擇，在期限內辦理放棄就可以。</p>${keyDatesHTML("wan")}<p class="small" style="margin-top:6px">🎁 ${D.bonus}</p></div>
+        ${warnHTML()}
+        <div class="card"><h2>四把鑰匙，一把接一把</h2>${steps4HTML("wan")}</div>
+        <div class="card"><h2>在這棟大樓的五年</h2><ul class="plain"><li>${ADV.free}</li><li>${ADV.lab}</li><li>${ADV.cert}</li><li>${ADV.intern}</li><li>${ADV.degree}</li></ul></div>
+        <button class="cta" id="fTl">🗓️ 看關鍵時間，下載到行事曆</button>
+        ${lineHTML("想參觀真的實驗室？加官方 LINE@ 問專人")}
+        <div class="row"><button class="cta ghost" id="fBag">🎒 打開百寶袋</button><a class="cta ghost" href="${d.url}" target="_blank" rel="noopener">${d.icon} ${d.name}網頁 ↗</a></div>
+        <p class="disc" style="color:var(--muted)">把通行證下載或截圖存起來，和爸媽、老師聊聊你喜歡的科。招生日期和規定以 ${D.cycle} 正式招生簡章為準。</p>
+        <button class="cta ghost" id="fAgain">🔄 再闖一次</button><div class="tape"></div>`);
+      $("#fDl").onclick = () => saveCard({ title: "實驗室通行證", file: `正修五專-${d.name}實驗室通行證`, kicker: "夢想實驗大樓｜實驗室通行證", icon: d.icon,
+        rows: [["解謎成績", `6 間實驗室、12 題，${pad(mm)} 分 ${pad(ss)} 秒`], ["最想留下來", `正修科技大學五專部 ${d.name}`], ["學什麼", d.learn], ["未來", d.jobs.join("、")], ["第一把鑰匙", `早鳥直達（${D.paths.wan.name}）`]] });
+      $("#fTl").onclick = () => openTimes("wan"); $("#fBag").onclick = openBag; $("#fAgain").onclick = () => { reset(); go(0); };
+    } }
+  ]
+};
+
+boot();
+</script>
+</body>
+</html>
